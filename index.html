@@ -390,6 +390,21 @@
         .wide-nudge svg { flex-shrink: 0; margin-top: 2px; }
         .wide-nudge strong { color: #5c430c; }
 
+        /* Reserve Your Spot */
+        .reserve-msg { text-align: center; font-size: 0.85rem; color: #666; margin: 16px 0 10px; line-height: 1.5; }
+        .reserve-msg strong { color: #0f3460; }
+        .reserve-btn { display: block; width: 100%; padding: 14px; border-radius: 12px; font-weight: 700;
+            font-size: 1rem; text-align: center; text-decoration: none; font-family: inherit; border: none;
+            transition: all 0.2s ease; }
+        .reserve-btn.active { background: linear-gradient(90deg, #ff5722, #e64a19); color: #fff; cursor: pointer;
+            animation: glowOrange 2s ease-in-out infinite; }
+        .reserve-btn.active:hover { transform: translateY(-1px); }
+        .reserve-btn.inactive { background: #e0e0e0; color: #999; cursor: not-allowed; }
+        @keyframes glowOrange {
+            0%, 100% { box-shadow: 0 0 8px rgba(255,87,34,0.4), 0 0 20px rgba(255,87,34,0.2); }
+            50% { box-shadow: 0 0 20px rgba(255,87,34,0.7), 0 0 40px rgba(255,87,34,0.4); }
+        }
+
         /* Check-in note card — attention styling */
         .note-card { border: 2px solid #ffb74d; background: linear-gradient(180deg, #fffaf0, #ffffff); }
         .note-tag { display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 1.5px;
@@ -481,6 +496,8 @@
                 JOIN NOW
             </a>
             <div class="countdown" id="countdown"></div>
+            <div class="reserve-msg" id="reserveMsg"></div>
+            <a id="reserveBtn" class="reserve-btn inactive" target="_blank" rel="noopener">RESERVE NOW</a>
         </div>
 
         <!-- Wide Screen Bonus -->
@@ -514,7 +531,7 @@
             </ol>
             <div class="help-box">
                 <strong>Having trouble connecting?</strong><br>
-                <a href="Just simply reply to the">SMS or email where you received the invitation</a>
+                Text or call <a href="tel:808-515-3642">808-515-3642</a>
             </div>
         </div>
 
@@ -671,6 +688,7 @@
         const START_HOUR = 13, START_MIN = 45;  // 1:45 PM EDT
         const END_HOUR = 20, END_MIN = 40;      // 8:40 PM EDT
         const JOIN_LINK = 'https://live.travelaht.com/aht';
+        const RESERVE_LINK = 'https://calendly.com/go_travel';
 
         function getETNow() {
             const now = new Date();
@@ -708,6 +726,8 @@
             const countdown = document.getElementById('countdown');
             const sbtn = document.getElementById('stickyBtn');
             const scount = document.getElementById('stickyCount');
+            const rbtn = document.getElementById('reserveBtn');
+            const rmsg = document.getElementById('reserveMsg');
             const timeStr = formatTime(START_HOUR, START_MIN);
 
             if (isLive()) {
@@ -720,6 +740,10 @@
                 sbtn.textContent = 'JOIN NOW — WE ARE LIVE';
                 sbtn.setAttribute('href', JOIN_LINK);
                 scount.textContent = '';
+                rbtn.classList.remove('active');
+                rbtn.classList.add('inactive');
+                rbtn.removeAttribute('href');
+                rmsg.innerHTML = 'We&rsquo;re live right now &mdash; join us above! Reservations reopen when the session ends.';
             } else {
                 btn.classList.remove('active');
                 btn.classList.add('inactive');
@@ -728,6 +752,10 @@
                 badge.style.display = 'none';
                 sbtn.classList.remove('active');
                 sbtn.removeAttribute('href');
+                rbtn.classList.add('active');
+                rbtn.classList.remove('inactive');
+                rbtn.setAttribute('href', RESERVE_LINK);
+                rmsg.innerHTML = 'Thank you for checking! As of the moment, we aren&rsquo;t live.<br><strong>Reserve your spot now for the next session!</strong>';
 
                 const et = getETNow();
                 const nowSec = et.getHours() * 3600 + et.getMinutes() * 60 + et.getSeconds();
