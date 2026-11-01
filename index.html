@@ -497,7 +497,7 @@
             </a>
             <div class="countdown" id="countdown"></div>
             <div class="reserve-msg" id="reserveMsg"></div>
-            <a id="reserveBtn" class="reserve-btn active" href="https://calendly.com/go_travel" target="_blank" rel="noopener">RESERVE NOW</a>
+            <a id="reserveBtn" class="reserve-btn inactive" target="_blank" rel="noopener">RESERVE NOW</a>
         </div>
 
         <!-- Wide Screen Bonus -->
@@ -685,22 +685,34 @@
     </div>
 
     <script>
-        const START_HOUR = 13, START_MIN = 45;  // 1:45 PM EDT
-        const END_HOUR = 20, END_MIN = 40;      // 8:40 PM EDT
+        const START_HOUR = 12, START_MIN = 45;  // 12:45 PM Eastern
+        const END_HOUR = 19, END_MIN = 45;      // 7:45 PM Eastern (exclusive)
         const JOIN_LINK = 'https://live.travelaht.com/aht';
         const RESERVE_LINK = 'https://calendly.com/go_travel';
 
+        // Read the Eastern wall clock directly so EST/EDT and DST fallback are handled reliably.
         function getETNow() {
-            const now = new Date();
-            return new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
+            const parts = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'America/New_York',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hourCycle: 'h23'
+            }).formatToParts(new Date());
+
+            return {
+                hours: Number(parts.find(part => part.type === 'hour').value),
+                minutes: Number(parts.find(part => part.type === 'minute').value),
+                seconds: Number(parts.find(part => part.type === 'second').value)
+            };
         }
 
         function isLive() {
             const et = getETNow();
-            const mins = et.getHours() * 60 + et.getMinutes();
-            const start = START_HOUR * 60 + START_MIN;
-            const end = END_HOUR * 60 + END_MIN;
-            return mins >= start && mins <= end;
+            const nowSeconds = et.hours * 3600 + et.minutes * 60 + et.seconds;
+            const startSeconds = START_HOUR * 3600 + START_MIN * 60;
+            const endSeconds = END_HOUR * 3600 + END_MIN * 60;
+            return nowSeconds >= startSeconds && nowSeconds < endSeconds;
         }
 
         function formatTime(h, m) {
@@ -740,10 +752,10 @@
                 sbtn.textContent = 'JOIN NOW — WE ARE LIVE';
                 sbtn.setAttribute('href', JOIN_LINK);
                 scount.textContent = '';
-                rbtn.classList.add('active');
-                rbtn.classList.remove('inactive');
-                rbtn.setAttribute('href', RESERVE_LINK);
-                rmsg.innerHTML = 'Reserve your spot for an upcoming session.';
+                rbtn.classList.remove('active');
+                rbtn.classList.add('inactive');
+                rbtn.removeAttribute('href');
+                rmsg.innerHTML = 'Reservations open when live access closes at 7:45 PM ET.';
             } else {
                 btn.classList.remove('active');
                 btn.classList.add('inactive');
@@ -758,7 +770,7 @@
                 rmsg.innerHTML = 'Reserve your spot for an upcoming session.';
 
                 const et = getETNow();
-                const nowSec = et.getHours() * 3600 + et.getMinutes() * 60 + et.getSeconds();
+                const nowSec = et.hours * 3600 + et.minutes * 60 + et.seconds;
                 const startSec = START_HOUR * 3600 + START_MIN * 60;
 
                 if (nowSec < startSec) {
